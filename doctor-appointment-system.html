@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Appointment Desk — Doctor Discovery &amp; Booking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16231F;
+    --ink-soft:#4B5A54;
+    --paper:#EEEFE7;
+    --panel:#F7F8F2;
+    --line:#D6D8CD;
+    --primary:#2F6F62;
+    --primary-dark:#1F4B41;
+    --primary-tint:#E1EBE7;
+    --amber:#C98A3E;
+    --amber-tint:#F5E9D6;
+    --rose:#B44238;
+    --rose-tint:#F3E1DE;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:'Source Serif 4', Georgia, serif;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:40px 28px 80px;
+  }
+  header.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:24px;
+    padding-bottom:28px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:32px;
+    flex-wrap:wrap;
+  }
+  header.top h1{
+    font-size:2.1rem;
+    font-weight:600;
+    color:var(--primary-dark);
+  }
+  header.top p{
+    margin:6px 0 0;
+    color:var(--ink-soft);
+    font-size:0.98rem;
+    max-width:46ch;
+  }
+  .today-chip{
+    font-size:0.82rem;
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+    border-radius:100px;
+    padding:6px 14px;
+    background:var(--panel);
+    white-space:nowrap;
+  }
+  .layout{
+    display:grid;
+    grid-template-columns:1.15fr 1fr;
+    gap:36px;
+    align-items:start;
+  }
+  @media (max-width:880px){
+    .layout{grid-template-columns:1fr;}
+  }
+  section.block h2{
+    font-size:1.3rem;
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  section.block .block-sub{
+    color:var(--ink-soft);
+    font-size:0.9rem;
+    margin-bottom:18px;
+  }
+
+  /* Doctor directory */
+  .filters{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .filter-chip{
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink-soft);
+    font-size:0.82rem;
+    padding:6px 13px;
+    border-radius:100px;
+    cursor:pointer;
+    font-family:inherit;
+    transition:background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .filter-chip:hover{border-color:var(--primary);}
+  .filter-chip.active{
+    background:var(--primary);
+    border-color:var(--primary);
+    color:#fff;
+  }
+  .doctor-list{
+    display:flex;
+    flex-direction:column;
+    border-top:1px solid var(--line);
+  }
+  .doctor-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    padding:16px 4px;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;
+    background:transparent;
+    transition:background 0.15s;
+  }
+  .doctor-row:hover{background:var(--panel);}
+  .doctor-row.selected{background:var(--primary-tint);}
+  .doctor-info .name{
+    font-family:'Source Serif 4', Georgia, serif;
+    font-size:1.05rem;
+    font-weight:600;
+  }
+  .doctor-info .meta{
+    color:var(--ink-soft);
+    font-size:0.85rem;
+    margin-top:2px;
+  }
+  .doctor-info .clinic{
+    color:var(--ink-soft);
+    font-size:0.8rem;
+    margin-top:2px;
+  }
+  .select-btn{
+    font-family:inherit;
+    font-size:0.82rem;
+    font-weight:500;
+    color:var(--primary-dark);
+    background:none;
+    border:1px solid var(--primary);
+    border-radius:6px;
+    padding:7px 14px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background 0.15s, color 0.15s;
+  }
+  .select-btn:hover{background:var(--primary); color:#fff;}
+  .doctor-row.selected .select-btn{background:var(--primary); color:#fff;}
+
+  /* Booking panel */
+  .booking-panel{
+    border:1px solid var(--line);
+    background:var(--panel);
+    border-radius:10px;
+    padding:22px 24px 24px;
+  }
+  .step{
+    margin-bottom:20px;
+  }
+  .step:last-child{margin-bottom:0;}
+  .step-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .step-num{
+    width:22px;height:22px;
+    border-radius:50%;
+    background:var(--ink);
+    color:var(--paper);
+    font-size:0.75rem;
+    font-weight:600;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .step-num.done{background:var(--primary);}
+  .step-title{font-weight:600; font-size:0.95rem;}
+  .step-empty{
+    color:var(--ink-soft);
+    font-size:0.85rem;
+    padding-left:32px;
+  }
+  .day-tabs{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-left:32px;
+    margin-bottom:10px;
+  }
+  .day-tab{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:7px;
+    padding:6px 10px;
+    font-size:0.78rem;
+    text-align:center;
+    cursor:pointer;
+    font-family:inherit;
+    color:var(--ink-soft);
+    flex-shrink:0;
+  }
+  .day-tab.active{
+    border-color:var(--primary);
+    background:var(--primary-tint);
+    color:var(--primary-dark);
+    font-weight:600;
+  }
+  .slot-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:8px;
+    padding-left:32px;
+  }
+  .slot-btn{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:7px;
+    padding:9px 6px;
+    font-size:0.85rem;
+    font-family:inherit;
+    cursor:pointer;
+    color:var(--ink);
+  }
+  .slot-btn:hover:not(:disabled){border-color:var(--primary);}
+  .slot-btn.selected{
+    background:var(--primary);
+    border-color:var(--primary);
+    color:#fff;
+    font-weight:600;
+  }
+  .slot-btn:disabled{
+    color:#B7BBAF;
+    text-decoration:line-through;
+    cursor:not-allowed;
+    background:#F1F1EA;
+  }
+  .patient-form{
+    padding-left:32px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .patient-form input{
+    font-family:inherit;
+    font-size:0.9rem;
+    padding:9px 12px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .patient-form input:focus{outline:2px solid var(--primary); outline-offset:1px;}
+  .confirm-btn{
+    font-family:inherit;
+    font-size:0.9rem;
+    font-weight:600;
+    color:#fff;
+    background:var(--primary);
+    border:none;
+    border-radius:7px;
+    padding:11px 16px;
+    cursor:pointer;
+    transition:background 0.15s;
+  }
+  .confirm-btn:hover:not(:disabled){background:var(--primary-dark);}
+  .confirm-btn:disabled{
+    background:#C7CBBE;
+    cursor:not-allowed;
+  }
+  .booking-summary{
+    padding-left:32px;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+  }
+  .booking-summary b{color:var(--ink);}
+
+  /* Ledger */
+  .ledger{
+    border-top:1px solid var(--line);
+  }
+  .ledger-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:14px;
+    padding:16px 4px;
+    border-bottom:1px solid var(--line);
+  }
+  .ledger-row .doc{
+    font-weight:600;
+    font-size:0.95rem;
+  }
+  .ledger-row .spec{
+    color:var(--ink-soft);
+    font-size:0.82rem;
+  }
+  .ledger-row .when{
+    font-size:0.85rem;
+    margin-top:6px;
+    color:var(--ink);
+  }
+  .ledger-row .patient{
+    font-size:0.82rem;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .ledger-right{
+    text-align:right;
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:8px;
+  }
+  .status-badge{
+    font-size:0.72rem;
+    font-weight:600;
+    padding:4px 10px;
+    border-radius:100px;
+    white-space:nowrap;
+  }
+  .status-badge.scheduled{background:var(--primary-tint); color:var(--primary-dark);}
+  .status-badge.cancelled{background:var(--rose-tint); color:var(--rose);}
+  .cancel-link{
+    font-family:inherit;
+    font-size:0.78rem;
+    color:var(--rose);
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:0;
+    text-decoration:underline;
+  }
+  .ledger-row.cancelled .doc,
+  .ledger-row.cancelled .when{
+    color:#96998C;
+    text-decoration:line-through;
+  }
+  .empty-ledger{
+    padding:28px 4px;
+    color:var(--ink-soft);
+    font-size:0.9rem;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+  }
+
+  /* Architecture note */
+  .arch-note{
+    margin-top:44px;
+    padding-top:24px;
+    border-top:1px solid var(--line);
+    font-size:0.85rem;
+    color:var(--ink-soft);
+  }
+  .arch-note b{color:var(--ink);}
+  .arch-note code{
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:1px 6px;
+    border-radius:4px;
+    font-size:0.8em;
+  }
+  .toast{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);
+    color:var(--paper);
+    padding:12px 20px;
+    border-radius:8px;
+    font-size:0.88rem;
+    opacity:0;
+    transition:opacity 0.25s, transform 0.25s;
+    pointer-events:none;
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Appointment Desk</h1>
+      <p>Find a doctor, check their open slots, and book in three steps — no phone calls needed.</p>
+    </div>
+    <div class="today-chip" id="todayChip"></div>
+  </header>
+
+  <div class="layout">
+    <section class="block">
+      <h2>Find a doctor</h2>
+      <div class="block-sub">Browse by specialization, then choose a doctor to see their open slots.</div>
+      <div class="filters" id="filters"></div>
+      <div class="doctor-list" id="doctorList"></div>
+
+      <div class="booking-panel" style="margin-top:24px;">
+        <div class="step">
+          <div class="step-head">
+            <div class="step-num" id="stepNum1">1</div>
+            <div class="step-title">Choose a doctor</div>
+          </div>
+          <div id="step1Body" class="step-empty">Pick a doctor from the list above.</div>
+        </div>
+
+        <div class="step" id="step2" style="display:none;">
+          <div class="step-head">
+            <div class="step-num" id="stepNum2">2</div>
+            <div class="step-title">Choose a date &amp; time</div>
+          </div>
+          <div id="step2Body"></div>
+        </div>
+
+        <div class="step" id="step3" style="display:none;">
+          <div class="step-head">
+            <div class="step-num" id="stepNum3">3</div>
+            <div class="step-title">Your details</div>
+          </div>
+          <div class="patient-form">
+            <input type="text" id="patientName" placeholder="Patient full name" />
+            <div class="booking-summary" id="bookingSummary"></div>
+            <button class="confirm-btn" id="confirmBtn" disabled>Confirm appointment</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>Your appointments</h2>
+      <div class="block-sub">Everything booked so far, most recent first.</div>
+      <div class="ledger" id="ledger"></div>
+    </section>
+  </div>
+
+  <div class="arch-note">
+    <b>How this maps to a real build:</b> everything here runs in one page for the demo, but the logic is split exactly like the two services in the brief. The <code>DoctorService</code> object owns doctor profiles and slot availability (<code>GET /doctors</code>, <code>GET /doctors/{id}/slots</code>); the <code>AppointmentService</code> object owns bookings and status (<code>POST /appointments</code>, <code>DELETE /appointments/{id}</code>). Booking a slot calls <code>DoctorService.checkAvailability()</code> before <code>AppointmentService.create()</code> — the same handshake shown in the sequence diagram. Lift each object into its own Spring Boot app on ports 8081/8082 and swap the direct call for a <code>RestClient</code>/<code>WebClient</code> HTTP call, and you have the microservices version.
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- DOCTOR SERVICE (simulated) ----------
+  // In a real split, this becomes its own Spring Boot app with its own DB.
+  const DoctorService = (function(){
+    const doctors = [
+      { id: 'd1', name: 'Dr. Meera Iyer', specialization: 'General Medicine', clinic: 'Sunrise Family Clinic' },
+      { id: 'd2', name: 'Dr. Arjun Nair', specialization: 'Cardiology', clinic: 'Heartwell Cardiac Centre' },
+      { id: 'd3', name: 'Dr. Fatima Sheikh', specialization: 'Dermatology', clinic: 'ClearSkin Dermatology' },
+      { id: 'd4', name: 'Dr. Ravi Kulkarni', specialization: 'Pediatrics', clinic: 'Little Sprouts Pediatric Care' },
+      { id: 'd5', name: 'Dr. Ananya Desai', specialization: 'Orthopedics', clinic: 'Bone & Joint Institute' }
+    ];
+    const times = ['09:00','10:00','11:30','14:00','15:30','17:00'];
+    const DAYS_AHEAD = 6;
+
+    // deterministic pseudo-random "pre-existing bookings" so the demo
+    // doesn't show every slot open
+    function hash(str){
+      let h = 0;
+      for (let i=0; i<str.length; i++){ h = (h*31 + str.charCodeAt(i)) >>> 0; }
+      return h;
+    }
+    const takenAtStart = new Set();
+    doctors.forEach(doc => {
+      for (let dayOffset=0; dayOffset<DAYS_AHEAD; dayOffset++){
+        times.forEach(t => {
+          const key = doc.id+'|'+dayOffset+'|'+t;
+          if (hash(key) % 5 === 0) takenAtStart.add(key);
+        });
+      }
+    });
+    // mutable "database" of taken slots, seeded from the above
+    const taken = new Set(takenAtStart);
+
+    function list(){ return doctors.slice(); }
+    function get(id){ return doctors.find(d => d.id === id); }
+    function specializations(){ return [...new Set(doctors.map(d => d.specialization))]; }
+
+    function dateForOffset(offset){
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      return d;
+    }
+    function getSlots(doctorId, dayOffset){
+      return times.map(t => ({
+        time: t,
+        available: !taken.has(doctorId+'|'+dayOffset+'|'+t)
+      }));
+    }
+    function checkAvailability(doctorId, dayOffset, time){
+      return !taken.has(doctorId+'|'+dayOffset+'|'+time);
+    }
+    function markBooked(doctorId, dayOffset, time){
+      taken.add(doctorId+'|'+dayOffset+'|'+time);
+    }
+    function markFreed(doctorId, dayOffset, time){
+      taken.delete(doctorId+'|'+dayOffset+'|'+time);
+    }
+
+    return { list, get, specializations, getSlots, checkAvailability, markBooked, markFreed, dateForOffset, DAYS_AHEAD };
+  })();
+
+  // ---------- APPOINTMENT SERVICE (simulated) ----------
+  // In a real split, this becomes the second Spring Boot app, calling
+  // DoctorService over REST instead of a direct function call.
+  const AppointmentService = (function(){
+    let appointments = [];
+    let nextId = 1;
+
+    function create({ patientName, doctorId, dayOffset, time }){
+      // "Is Dr. X available at this time?" -> DoctorService
+      if (!DoctorService.checkAvailability(doctorId, dayOffset, time)){
+        return { ok:false, error:'That slot was just taken. Pick another.' };
+      }
+      DoctorService.markBooked(doctorId, dayOffset, time);
+      const appt = {
+        id: 'a'+(nextId++),
+        patientName,
+        doctorId,
+        dayOffset,
+        time,
+        status: 'Scheduled',
+        createdAt: Date.now()
+      };
+      appointments.push(appt);
+      return { ok:true, appointment: appt };
+    }
+    function list(){ return appointments.slice().sort((a,b) => b.createdAt - a.createdAt); }
+    function cancel(id){
+      const appt = appointments.find(a => a.id === id);
+      if (!appt || appt.status === 'Cancelled') return;
+      appt.status = 'Cancelled';
+      DoctorService.markFreed(appt.doctorId, appt.dayOffset, appt.time);
+    }
+    return { create, list, cancel };
+  })();
+
+  // ---------- UI STATE ----------
+  const state = {
+    activeFilter: 'All',
+    selectedDoctorId: null,
+    selectedDayOffset: 0,
+    selectedTime: null
+  };
+
+  const DAY_LABELS = ['Today','Tomorrow'];
+  function dayLabel(offset){
+    if (offset < DAY_LABELS.length) return DAY_LABELS[offset];
+    const d = DoctorService.dateForOffset(offset);
+    return d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
+  }
+  function fullDateLabel(offset){
+    const d = DoctorService.dateForOffset(offset);
+    return d.toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // ---------- RENDER: header ----------
+  document.getElementById('todayChip').textContent =
+    new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+
+  // ---------- RENDER: filters ----------
+  function renderFilters(){
+    const el = document.getElementById('filters');
+    const specs = ['All', ...DoctorService.specializations()];
+    el.innerHTML = '';
+    specs.forEach(spec => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-chip' + (state.activeFilter === spec ? ' active' : '');
+      btn.textContent = spec;
+      btn.onclick = () => { state.activeFilter = spec; renderFilters(); renderDoctorList(); };
+      el.appendChild(btn);
+    });
+  }
+
+  // ---------- RENDER: doctor list ----------
+  function renderDoctorList(){
+    const el = document.getElementById('doctorList');
+    el.innerHTML = '';
+    const docs = DoctorService.list().filter(d => state.activeFilter === 'All' || d.specialization === state.activeFilter);
+    docs.forEach(doc => {
+      const row = document.createElement('div');
+      row.className = 'doctor-row' + (state.selectedDoctorId === doc.id ? ' selected' : '');
+      row.innerHTML = `
+        <div class="doctor-info">
+          <div class="name">${doc.name}</div>
+          <div class="meta">${doc.specialization}</div>
+          <div class="clinic">${doc.clinic}</div>
+        </div>
+        <button class="select-btn">${state.selectedDoctorId === doc.id ? 'Selected' : 'View slots'}</button>
+      `;
+      row.onclick = () => selectDoctor(doc.id);
+      el.appendChild(row);
+    });
+  }
+
+  function selectDoctor(id){
+    state.selectedDoctorId = id;
+    state.selectedDayOffset = 0;
+    state.selectedTime = null;
+    renderDoctorList();
+    renderBookingPanel();
+  }
+
+  // ---------- RENDER: booking panel ----------
+  function renderBookingPanel(){
+    const doc = state.selectedDoctorId ? DoctorService.get(state.selectedDoctorId) : null;
+    const stepNum1 = document.getElementById('stepNum1');
+    const step1Body = document.getElementById('step1Body');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+
+    if (!doc){
+      stepNum1.classList.remove('done');
+      step1Body.style.display = 'block';
+      step1Body.textContent = 'Pick a doctor from the list above.';
+      step2.style.display = 'none';
+      step3.style.display = 'none';
+      return;
+    }
+
+    stepNum1.classList.add('done');
+    step1Body.style.display = 'none';
+
+    // Step 2: day tabs + slot grid
+    step2.style.display = 'block';
+    const step2Body = document.getElementById('step2Body');
+    let dayTabsHtml = '<div class="day-tabs">';
+    for (let i=0; i<DoctorService.DAYS_AHEAD; i++){
+      dayTabsHtml += `<button class="day-tab${state.selectedDayOffset===i?' active':''}" data-day="${i}">${dayLabel(i)}</button>`;
+    }
+    dayTabsHtml += '</div>';
+
+    const slots = DoctorService.getSlots(doc.id, state.selectedDayOffset);
+    let slotGridHtml = '<div class="slot-grid">';
+    slots.forEach(s => {
+      const isSelected = state.selectedTime === s.time;
+      slotGridHtml += `<button class="slot-btn${isSelected?' selected':''}" data-time="${s.time}" ${s.available?'':'disabled'}>${s.time}</button>`;
+    });
+    slotGridHtml += '</div>';
+
+    step2Body.innerHTML = dayTabsHtml + slotGridHtml;
+
+    step2Body.querySelectorAll('.day-tab').forEach(tab => {
+      tab.onclick = () => {
+        state.selectedDayOffset = parseInt(tab.dataset.day, 10);
+        state.selectedTime = null;
+        renderBookingPanel();
+      };
+    });
+    step2Body.querySelectorAll('.slot-btn:not(:disabled)').forEach(btn => {
+      btn.onclick = () => {
+        state.selectedTime = btn.dataset.time;
+        renderBookingPanel();
+      };
+    });
+
+    // Step 3: patient details
+    if (state.selectedTime){
+      step3.style.display = 'block';
+      document.getElementById('bookingSummary').innerHTML =
+        `Booking <b>${doc.name}</b> (${doc.specialization}) — <b>${fullDateLabel(state.selectedDayOffset)}</b> at <b>${state.selectedTime}</b>.`;
+    } else {
+      step3.style.display = 'none';
+    }
+
+    updateConfirmState();
+  }
+
+  function updateConfirmState(){
+    const nameInput = document.getElementById('patientName');
+    const confirmBtn = document.getElementById('confirmBtn');
+    confirmBtn.disabled = !(state.selectedDoctorId && state.selectedTime && nameInput.value.trim().length > 1);
+  }
+
+  document.getElementById('patientName').addEventListener('input', updateConfirmState);
+
+  document.getElementById('confirmBtn').addEventListener('click', () => {
+    const nameInput = document.getElementById('patientName');
+    const result = AppointmentService.create({
+      patientName: nameInput.value.trim(),
+      doctorId: state.selectedDoctorId,
+      dayOffset: state.selectedDayOffset,
+      time: state.selectedTime
+    });
+    if (!result.ok){
+      showToast(result.error);
+      renderBookingPanel();
+      return;
+    }
+    showToast('Appointment booked.');
+    nameInput.value = '';
+    state.selectedTime = null;
+    renderBookingPanel();
+    renderLedger();
+  });
+
+  // ---------- RENDER: ledger ----------
+  function renderLedger(){
+    const el = document.getElementById('ledger');
+    const items = AppointmentService.list();
+    if (items.length === 0){
+      el.innerHTML = '<div class="empty-ledger">No appointments yet — book one on the left.</div>';
+      return;
+    }
+    el.innerHTML = '';
+    items.forEach(appt => {
+      const doc = DoctorService.get(appt.doctorId);
+      const isCancelled = appt.status === 'Cancelled';
+      const row = document.createElement('div');
+      row.className = 'ledger-row' + (isCancelled ? ' cancelled' : '');
+      row.innerHTML = `
+        <div>
+          <div class="doc">${doc.name}</div>
+          <div class="spec">${doc.specialization} · ${doc.clinic}</div>
+          <div class="when">${fullDateLabel(appt.dayOffset)} at ${appt.time}</div>
+          <div class="patient">Patient: ${appt.patientName}</div>
+        </div>
+        <div class="ledger-right">
+          <span class="status-badge ${isCancelled ? 'cancelled' : 'scheduled'}">${appt.status}</span>
+          ${isCancelled ? '' : '<button class="cancel-link">Cancel</button>'}
+        </div>
+      `;
+      if (!isCancelled){
+        row.querySelector('.cancel-link').onclick = () => {
+          AppointmentService.cancel(appt.id);
+          showToast('Appointment cancelled.');
+          renderLedger();
+          renderBookingPanel();
+        };
+      }
+      el.appendChild(row);
+    });
+  }
+
+  // ---------- INIT ----------
+  renderFilters();
+  renderDoctorList();
+  renderBookingPanel();
+  renderLedger();
+})();
+</script>
+</body>
+</html>
